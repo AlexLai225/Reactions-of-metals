@@ -21,21 +21,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify project root
+        run: |
+          for required in package.json index.html vite.config.ts src/main.tsx; do
+            if [ ! -f "$required" ]; then
+              echo "::error::Missing $required at repository root. Ensure files were not uploaded inside a nested subfolder."
+              exit 1
+            fi
+          done
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then
+          if [ -f bun.lock ]; then
+            bun install --frozen-lockfile || bun install
+          elif [ -f package-lock.json ]; then
             npm ci
           else
             npm install
           fi
 
       - name: Build static site
-        run: npm run build
+        run: |
+          if [ -f bun.lock ]; then
+            bun run build
+          else
+            npm run build
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
