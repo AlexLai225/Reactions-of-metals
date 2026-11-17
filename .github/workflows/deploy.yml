@@ -42,19 +42,12 @@ jobs:
         run: |
           if [ -f bun.lock ]; then
             bun install --frozen-lockfile || bun install
-          elif [ -f package-lock.json ]; then
-            npm ci
           else
-            npm install
+            bun install
           fi
 
       - name: Build static site
-        run: |
-          if [ -f bun.lock ]; then
-            bun run build
-          else
-            npm run build
-          fi
+        run: bun run build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
