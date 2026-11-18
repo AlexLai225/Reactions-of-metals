@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BookOpen, Pause, Volume2, VolumeX } from 'lucide-react';
+import {
+  getInitialLanguage,
+  pickText,
+  saveLanguage,
+  UI_COPY,
+  type Language,
+} from './game/i18n';
 import { REAGENTS } from './game/metals';
 import {
   advanceRound,
@@ -26,37 +33,53 @@ function getInitialAutoStart(): boolean {
   return new URLSearchParams(window.location.search).get('autostart') === '1';
 }
 
-function getHeaderTitle(selection: ReagentSelection): string {
+function getHeaderTitle(selection: ReagentSelection, lang: Language): string {
+  const copy = UI_COPY[lang];
   switch (selection) {
     case 'hcl':
-      return 'Metal × HCl';
+      return copy.headerHcl;
     case 'water':
-      return 'Metal × Water';
+      return copy.headerWater;
     case 'steam':
-      return 'Metal × Steam';
+      return copy.headerSteam;
     case 'oxygen':
-      return 'Metal × O₂';
+      return copy.headerOxygen;
     case 'mixed':
-      return 'Metal Reactions';
+      return copy.headerMixedTitle;
   }
 }
 
 export default function App() {
+  const [lang, setLang] = useState<Language>(() => getInitialLanguage());
   const [state, setState] = useState<GameState>(() =>
-    createInitialState('hcl', 'all13', getInitialAutoStart())
+    createInitialState('hcl', 'all14', getInitialAutoStart())
   );
   const [muted, setMuted] = useState(false);
   const [showReference, setShowReference] = useState(false);
 
+  const copy = UI_COPY[lang];
+
   useEffect(() => {
     document.body.dataset.state = state.status;
   }, [state.status]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang === 'zh-HK' ? 'zh-Hant-HK' : 'en';
+  }, [lang]);
 
   const blurFocusedElement = () => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
   };
+
+  const handleToggleLanguage = useCallback(() => {
+    setLang((prev) => {
+      const next: Language = prev === 'en' ? 'zh-HK' : 'en';
+      saveLanguage(next);
+      return next;
+    });
+  }, []);
 
   const handleSelectReagent = useCallback((reagentSelection: ReagentSelection) => {
     setState((prev) => ({
@@ -200,7 +223,16 @@ export default function App() {
             e.preventDefault();
             handleChoose(false);
           }
-        } else if (e.key === 'Enter' || e.key === ' ') {
+        } else if (
+          e.key === 'Enter' ||
+          e.key === ' ' ||
+          e.key === 'ArrowLeft' ||
+          e.key === 'ArrowRight' ||
+          e.key === 'a' ||
+          e.key === 'A' ||
+          e.key === 'd' ||
+          e.key === 'D'
+        ) {
           e.preventDefault();
           handleNext();
         }
@@ -226,6 +258,8 @@ export default function App() {
         <TitleScreen
           reagentSelection={state.reagentSelection}
           mode={state.mode}
+          lang={lang}
+          onToggleLanguage={handleToggleLanguage}
           onSelectReagent={handleSelectReagent}
           onSelectMode={handleSelectMode}
           onStart={handleStart}
@@ -235,6 +269,7 @@ export default function App() {
           <ReferenceSheetModal
             reagentSelection={state.reagentSelection}
             history={state.history}
+            lang={lang}
             revealAll
             onClose={() => setShowReference(false)}
           />
@@ -248,33 +283,33 @@ export default function App() {
   const activeReagentLabel =
     state.reagentSelection === 'mixed'
       ? currentCard
-        ? REAGENTS[currentCard.reagent].shortLabel
-        : 'Mixed'
-      : REAGENTS[state.reagentSelection].shortLabel;
+        ? pickText(REAGENTS[currentCard.reagent].shortLabel, lang)
+        : copy.substanceMixed
+      : pickText(REAGENTS[state.reagentSelection].shortLabel, lang);
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col bg-[#f4f6f9] text-slate-900">
+    <div className="min-h-[100dvh] w-full overflow-x-clip flex flex-col bg-[#f4f6f9] text-slate-900">
       {/* Compact Top Bar */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-3 sm:px-6 h-13 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-2.5 sm:px-6 h-13 flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <span
             aria-hidden="true"
-            className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-xs font-extrabold text-amber-900 shrink-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-[11px] sm:text-xs font-extrabold text-amber-900 shrink-0"
           >
             M
           </span>
-          <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 truncate">
-            {getHeaderTitle(state.reagentSelection)}
+          <span className="font-extrabold text-xs sm:text-base tracking-tight text-slate-900 truncate">
+            {getHeaderTitle(state.reagentSelection, lang)}
           </span>
           <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold tracking-wide whitespace-nowrap shrink-0">
             HKDSE
           </span>
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+        <div className="flex items-center gap-0 sm:gap-1 shrink-0">
           <div
-            className="flex items-center gap-1 mr-1.5 sm:mr-2"
-            aria-label={`${state.lives} of ${state.maxLives} lives remaining`}
+            className="flex items-center gap-0.5 sm:gap-1 mr-0.5 sm:mr-2"
+            aria-label={copy.ariaLivesRemaining(state.lives, state.maxLives)}
           >
             {Array.from({ length: state.maxLives }).map((_, idx) => (
               <HeartIcon key={idx} filled={idx < state.lives} />
@@ -283,8 +318,21 @@ export default function App() {
 
           <button
             type="button"
+            data-testid="lang-toggle-topbar"
+            onClick={(e) => {
+              e.currentTarget.blur();
+              handleToggleLanguage();
+            }}
+            aria-label={copy.toggleLangAria}
+            className="min-w-[44px] min-h-[44px] px-2 rounded-xl flex items-center justify-center text-xs font-extrabold text-slate-700 hover:bg-slate-100 cursor-pointer"
+          >
+            {copy.toggleLangLabel}
+          </button>
+
+          <button
+            type="button"
             onClick={() => setShowReference(true)}
-            aria-label="Open reactivity series log"
+            aria-label={copy.ariaOpenLog}
             className="lg:hidden min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
           >
             <BookOpen className="w-5 h-5" />
@@ -296,7 +344,7 @@ export default function App() {
               e.currentTarget.blur();
               setMuted((prev) => !prev);
             }}
-            aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+            aria-label={muted ? copy.ariaUnmute : copy.ariaMute}
             className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
           >
             {muted ? (
@@ -312,7 +360,7 @@ export default function App() {
               e.currentTarget.blur();
               handlePause();
             }}
-            aria-label="Pause practice"
+            aria-label={copy.ariaPause}
             className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
           >
             <Pause className="w-5 h-5" />
@@ -328,7 +376,7 @@ export default function App() {
           aria-valuenow={state.history.length}
           aria-valuemin={0}
           aria-valuemax={state.deck.length}
-          aria-label="Deck progress"
+          aria-label={copy.appTitle}
         >
           {state.deck.map((item, idx) => {
             const record = state.history[idx];
@@ -355,9 +403,13 @@ export default function App() {
             {state.deck.length}
           </span>
           <div className="flex items-center gap-2">
-            <span>Score {state.score}</span>
+            <span>
+              {copy.scoreLabel} {state.score}
+            </span>
             <span aria-hidden="true">·</span>
-            <span>Streak {state.streak}</span>
+            <span>
+              {copy.streakLabel} {state.streak}
+            </span>
           </div>
         </div>
       </div>
@@ -368,6 +420,7 @@ export default function App() {
           {state.lastFeedback ? (
             <FeedbackCard
               card={state.lastFeedback.card}
+              lang={lang}
               chosenReacts={state.lastFeedback.chosenReacts}
               isCorrect={state.lastFeedback.isCorrect}
               pointsEarned={state.lastFeedback.pointsEarned}
@@ -378,13 +431,19 @@ export default function App() {
           ) : (
             currentCard && (
               <>
-                <SwipeCard card={currentCard} onChoose={handleChoose} />
+                <SwipeCard
+                  card={currentCard}
+                  lang={lang}
+                  onChoose={handleChoose}
+                />
 
                 <div className="mt-5 sm:mt-6 flex items-center justify-center gap-12 sm:gap-16">
                   <button
                     type="button"
                     onClick={() => handleChoose(true)}
-                    aria-label={`Reacts with ${REAGENTS[currentCard.reagent].shortLabel}`}
+                    aria-label={copy.ariaReactsWith(
+                      pickText(REAGENTS[currentCard.reagent].shortLabel, lang)
+                    )}
                     className="group flex flex-col items-center gap-1.5 cursor-pointer focus-visible:outline-none"
                   >
                     <span className="w-[74px] h-[74px] sm:w-20 sm:h-20 rounded-full bg-white border-[3px] border-orange-500 shadow-[0_8px_20px_-6px_rgba(249,115,22,0.35)] flex items-center justify-center group-hover:scale-105 group-active:scale-95 group-focus-visible:ring-4 group-focus-visible:ring-orange-300 transition-transform">
@@ -394,14 +453,16 @@ export default function App() {
                       />
                     </span>
                     <span className="text-sm sm:text-base font-extrabold text-orange-600">
-                      Reacts
+                      {copy.reactsBtn}
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleChoose(false)}
-                    aria-label={`No reaction with ${REAGENTS[currentCard.reagent].shortLabel}`}
+                    aria-label={copy.ariaNoReactionWith(
+                      pickText(REAGENTS[currentCard.reagent].shortLabel, lang)
+                    )}
                     className="group flex flex-col items-center gap-1.5 cursor-pointer focus-visible:outline-none"
                   >
                     <span className="w-[74px] h-[74px] sm:w-20 sm:h-20 rounded-full bg-white border-[3px] border-sky-500 shadow-[0_8px_20px_-6px_rgba(14,165,233,0.35)] flex items-center justify-center group-hover:scale-105 group-active:scale-95 group-focus-visible:ring-4 group-focus-visible:ring-sky-300 transition-transform">
@@ -411,13 +472,13 @@ export default function App() {
                       />
                     </span>
                     <span className="text-sm sm:text-base font-extrabold text-sky-600">
-                      No Reaction
+                      {copy.noReactionBtn}
                     </span>
                   </button>
                 </div>
 
                 <p className="hidden lg:block mt-4 text-xs font-medium text-slate-400">
-                  Keyboard: ← Reacts · → No Reaction · P Pause · M Mute
+                  {copy.keyboardHint}
                 </p>
               </>
             )
@@ -428,12 +489,14 @@ export default function App() {
           <ReactivitySeriesPanel
             reagentSelection={state.reagentSelection}
             history={state.history}
+            lang={lang}
           />
         </aside>
       </main>
 
       {state.status === 'paused' && (
         <PauseModal
+          lang={lang}
           onResume={handleResume}
           onRestart={handleRestart}
           onReturnTitle={handleReturnTitle}
@@ -444,6 +507,7 @@ export default function App() {
       {state.status === 'gameover' && (
         <GameOverModal
           state={state}
+          lang={lang}
           onPlayAgain={handleRestart}
           onReturnTitle={handleReturnTitle}
         />
@@ -453,6 +517,7 @@ export default function App() {
         <ReferenceSheetModal
           reagentSelection={state.reagentSelection}
           history={state.history}
+          lang={lang}
           revealAll={false}
           onClose={() => setShowReference(false)}
         />

@@ -1,19 +1,27 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { pickText, UI_COPY, type Language } from '../game/i18n';
 import { REAGENTS } from '../game/metals';
 import type { QuestionCard } from '../game/engine';
 import { MetalArtwork } from './MetalArtwork';
 
 interface SwipeCardProps {
   card: QuestionCard;
+  lang: Language;
   onChoose: (reacts: boolean) => void;
   disabled?: boolean;
 }
 
 const SWIPE_THRESHOLD_PX = 76;
 
-export function SwipeCard({ card, onChoose, disabled = false }: SwipeCardProps) {
+export function SwipeCard({
+  card,
+  lang,
+  onChoose,
+  disabled = false,
+}: SwipeCardProps) {
   const { metal, reagent } = card;
   const reagentMeta = REAGENTS[reagent];
+  const copy = UI_COPY[lang];
 
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -97,7 +105,7 @@ export function SwipeCard({ card, onChoose, disabled = false }: SwipeCardProps) 
             style={{ opacity: Math.max(0.25, intentStrength) }}
             className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-orange-500 text-white font-bold text-xs tracking-wide shadow-sm rotate-6"
           >
-            {reagentMeta.positiveActionHint}
+            {pickText(reagentMeta.positiveActionHint, lang)}
           </div>
         )}
         {swipeIntent === 'no-reaction' && (
@@ -105,7 +113,7 @@ export function SwipeCard({ card, onChoose, disabled = false }: SwipeCardProps) 
             style={{ opacity: Math.max(0.25, intentStrength) }}
             className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-sky-500 text-white font-bold text-xs tracking-wide shadow-sm -rotate-6"
           >
-            NO REACTION
+            {copy.noReactionStamp}
           </div>
         )}
       </div>
@@ -114,26 +122,26 @@ export function SwipeCard({ card, onChoose, disabled = false }: SwipeCardProps) 
       <div className="px-5 pt-4 pb-4 sm:px-6 sm:pt-5 sm:pb-5 flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-2xl sm:text-[26px] font-extrabold tracking-tight text-slate-900 leading-tight">
-            {metal.name}{' '}
+            {pickText(metal.name, lang)}{' '}
             <span className="font-mono-code text-slate-700 font-bold">
               {metal.symbol}
             </span>
           </h2>
           <span className="font-mono-code text-xs font-semibold text-slate-500 tabular-nums whitespace-nowrap shrink-0">
-            Atomic No. {metal.atomicNumber}
+            {copy.atomicNoPrefix} {metal.atomicNumber}
           </span>
         </div>
 
         <p className="text-sm text-slate-600 leading-snug min-h-[2.5rem]">
-          {metal.cardHint}
+          {pickText(metal.cardHint, lang)}
         </p>
 
         <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-slate-100">
           <span className="text-sm font-bold text-slate-900">
-            {reagentMeta.questionPrompt}
+            {pickText(reagentMeta.questionPrompt, lang)}
           </span>
           <span className="font-mono-code text-xs font-semibold text-slate-500 whitespace-nowrap shrink-0">
-            {reagentMeta.formula}
+            {pickText(reagentMeta.formula, lang)}
           </span>
         </div>
 
@@ -156,7 +164,7 @@ export function SwipeCard({ card, onChoose, disabled = false }: SwipeCardProps) 
             />
           </div>
           <span className="text-[11px] font-medium text-slate-400">
-            Swipe left or right · or tap action below
+            {copy.swipeHintCard}
           </span>
         </div>
       </div>

@@ -1,44 +1,71 @@
-import { BookOpen, Play } from 'lucide-react';
+import { BookOpen, Languages, Play } from 'lucide-react';
+import { pickText, UI_COPY, type Language } from '../game/i18n';
+import { REAGENTS, REAGENT_ORDER } from '../game/metals';
 import type { GameMode, ReagentSelection } from '../game/engine';
 
 interface TitleScreenProps {
   reagentSelection: ReagentSelection;
   mode: GameMode;
+  lang: Language;
+  onToggleLanguage: () => void;
   onSelectReagent: (selection: ReagentSelection) => void;
   onSelectMode: (mode: GameMode) => void;
   onStart: () => void;
   onOpenReference: () => void;
 }
 
-const REAGENT_OPTIONS: {
-  id: ReagentSelection;
-  label: string;
-  formula: string;
-}[] = [
-  { id: 'hcl', label: 'Dilute HCl', formula: 'HCl(aq)' },
-  { id: 'water', label: 'Cold Water', formula: 'H₂O(l)' },
-  { id: 'steam', label: 'Steam', formula: 'H₂O(g)' },
-  { id: 'oxygen', label: 'Oxygen', formula: 'O₂(g)' },
-  { id: 'mixed', label: 'Mixed Revision', formula: 'All 4 Substances' },
-];
-
-const MODES: { id: GameMode; label: string; detail: string }[] = [
-  { id: 'all13', label: 'All 13 Metals', detail: 'Full HKDSE set (K to Pt)' },
-  { id: 'traps', label: 'Exam Traps', detail: 'High-frequency DSE traps' },
-  { id: 'blitz7', label: 'Quick Blitz', detail: '7 random cards' },
-];
-
 export function TitleScreen({
   reagentSelection,
   mode,
+  lang,
+  onToggleLanguage,
   onSelectReagent,
   onSelectMode,
   onStart,
   onOpenReference,
 }: TitleScreenProps) {
+  const copy = UI_COPY[lang];
+
+  const reagentOptions: {
+    id: ReagentSelection;
+    label: string;
+    formula: string;
+  }[] = [
+    ...REAGENT_ORDER.map((id) => ({
+      id,
+      label: pickText(REAGENTS[id].shortLabel, lang),
+      formula: pickText(REAGENTS[id].formula, lang),
+    })),
+    {
+      id: 'mixed',
+      label: copy.substanceMixed,
+      formula: copy.substanceMixedFormula,
+    },
+  ];
+
+  const modes: { id: GameMode; label: string; detail: string }[] = [
+    { id: 'all14', label: copy.modeAllTitle, detail: copy.modeAllDetail },
+    { id: 'traps', label: copy.modeTrapsTitle, detail: copy.modeTrapsDetail },
+    { id: 'blitz7', label: copy.modeBlitzTitle, detail: copy.modeBlitzDetail },
+  ];
+
   return (
     <main className="min-h-[100dvh] w-full flex flex-col items-center justify-center px-4 py-5 bg-[#f4f6f9]">
       <div className="w-full max-w-[460px] flex flex-col items-center text-center">
+        {/* Top utility row with Language Switcher */}
+        <div className="w-full flex items-center justify-end mb-1">
+          <button
+            type="button"
+            data-testid="lang-toggle-title"
+            onClick={onToggleLanguage}
+            aria-label={copy.toggleLangAria}
+            className="min-h-[44px] min-w-[44px] px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs text-slate-800 font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          >
+            <Languages className="w-4 h-4 text-slate-500" aria-hidden="true" />
+            <span>{copy.toggleLangLabel}</span>
+          </button>
+        </div>
+
         {/* Bespoke SVG Title Lockup & Specimen Beaker Emblem */}
         <div className="mb-4 flex flex-col items-center">
           <svg
@@ -103,10 +130,10 @@ export function TitleScreen({
           </svg>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 text-balance">
-            HKDSE Metal Reactions
+            {copy.appTitle}
           </h1>
           <p className="mt-1.5 text-sm text-slate-600 max-w-sm leading-snug">
-            Test all 13 metals with dilute HCl, cold water, steam, and oxygen with instant HKDSE explanations.
+            {copy.appSubtitle}
           </p>
         </div>
 
@@ -115,14 +142,14 @@ export function TitleScreen({
           {/* Substance / Reagent Selector */}
           <div className="text-left">
             <span className="block text-xs font-bold text-slate-500 mb-2">
-              1. Choose Substance
+              {copy.stepSubstance}
             </span>
             <div
               className="grid grid-cols-2 gap-2"
               role="radiogroup"
-              aria-label="Substance to test"
+              aria-label={copy.stepSubstance}
             >
-              {REAGENT_OPTIONS.map((opt) => {
+              {reagentOptions.map((opt) => {
                 const active = reagentSelection === opt.id;
                 const isMixed = opt.id === 'mixed';
                 return (
@@ -159,14 +186,14 @@ export function TitleScreen({
           {/* Deck Mode Selector */}
           <div className="text-left">
             <span className="block text-xs font-bold text-slate-500 mb-2">
-              2. Choose Deck Mode
+              {copy.stepDeckMode}
             </span>
             <div
               className="grid grid-cols-1 gap-1.5"
               role="radiogroup"
-              aria-label="Deck Mode"
+              aria-label={copy.stepDeckMode}
             >
-              {MODES.map((item) => {
+              {modes.map((item) => {
                 const active = mode === item.id;
                 return (
                   <button
@@ -205,7 +232,7 @@ export function TitleScreen({
               className="w-full min-h-[48px] px-5 py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition-transform cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
             >
               <Play className="w-4 h-4 fill-current" aria-hidden="true" />
-              <span>Start Swipe Practice</span>
+              <span>{copy.startPractice}</span>
             </button>
 
             <button
@@ -214,13 +241,13 @@ export function TitleScreen({
               className="w-full min-h-[44px] px-4 py-2 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <BookOpen className="w-4 h-4" aria-hidden="true" />
-              <span>HKDSE Reactivity Reference Table</span>
+              <span>{copy.openReferenceTable}</span>
             </button>
           </div>
         </div>
 
         <p className="mt-3.5 text-xs font-medium text-slate-500">
-          Swipe Left or ← Reacts · Swipe Right or → No Reaction · Enter/Space Start
+          {copy.titleControlHint}
         </p>
       </div>
     </main>

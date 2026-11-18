@@ -57,48 +57,84 @@ export function MetalArtwork({
           fill="rgba(15, 23, 42, 0.18)"
         />
 
-        <polygon
-          points="50,64 110,82 170,64 182,102 152,138 68,138 38,102"
-          fill={palette.faceMain}
-          stroke={palette.stroke}
-          strokeWidth="3.5"
-          strokeLinejoin="round"
-        />
+        {metal.id === 'mercury' ? (
+          <g>
+            <path
+              d="M44 106 C42 74, 72 58, 110 60 C150 62, 178 76, 176 106 C174 128, 146 138, 110 138 C74 138, 46 128, 44 106 Z"
+              fill={palette.faceMain}
+              stroke={palette.stroke}
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+            <ellipse
+              cx="112"
+              cy="92"
+              rx="52"
+              ry="24"
+              fill={palette.faceTop}
+              opacity="0.88"
+            />
+            <path
+              d="M74 122 C96 132, 134 132, 158 118 C144 130, 92 132, 74 122 Z"
+              fill={palette.faceShade}
+              opacity="0.7"
+            />
+            <path
+              d="M68 82 C82 70, 108 66, 128 70"
+              fill="none"
+              stroke={palette.highlight}
+              strokeWidth="5"
+              strokeLinecap="round"
+              opacity="0.95"
+            />
+            <circle cx="144" cy="79" r="4" fill={palette.highlight} opacity="0.9" />
+          </g>
+        ) : (
+          <g>
+            <polygon
+              points="50,64 110,82 170,64 182,102 152,138 68,138 38,102"
+              fill={palette.faceMain}
+              stroke={palette.stroke}
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
 
-        <polygon
-          points="110,82 170,64 182,102 152,138 110,138"
-          fill={palette.faceShade}
-          opacity="0.55"
-        />
+            <polygon
+              points="110,82 170,64 182,102 152,138 110,138"
+              fill={palette.faceShade}
+              opacity="0.55"
+            />
 
-        <polygon
-          points="50,64 110,44 170,64 110,82"
-          fill={palette.faceTop}
-          stroke={palette.stroke}
-          strokeWidth="3.5"
-          strokeLinejoin="round"
-        />
+            <polygon
+              points="50,64 110,44 170,64 110,82"
+              fill={palette.faceTop}
+              stroke={palette.stroke}
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
 
-        <line
-          x1="64"
-          y1="62"
-          x2="96"
-          y2="52"
-          stroke={palette.highlight}
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          opacity="0.92"
-        />
+            <line
+              x1="64"
+              y1="62"
+              x2="96"
+              y2="52"
+              stroke={palette.highlight}
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              opacity="0.92"
+            />
 
-        <line
-          x1="110"
-          y1="82"
-          x2="110"
-          y2="136"
-          stroke={palette.stroke}
-          strokeWidth="2"
-          strokeOpacity="0.22"
-        />
+            <line
+              x1="110"
+              y1="82"
+              x2="110"
+              y2="136"
+              stroke={palette.stroke}
+              strokeWidth="2"
+              strokeOpacity="0.22"
+            />
+          </g>
+        )}
 
         {showFlame && (
           <g>
@@ -319,7 +355,7 @@ export function HeartIcon({ filled }: { filled: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="w-5 h-5 sm:w-[22px] sm:h-[22px]"
+      className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]"
       aria-hidden="true"
     >
       <path

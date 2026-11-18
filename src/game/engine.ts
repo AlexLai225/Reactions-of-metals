@@ -6,11 +6,11 @@ import {
 } from './metals';
 
 export type ReagentSelection = ReagentId | 'mixed';
-export type GameMode = 'all13' | 'traps' | 'blitz7';
+export type GameMode = 'all14' | 'traps' | 'blitz7';
 export type GameStatus = 'title' | 'playing' | 'paused' | 'gameover';
 
 export interface QuestionCard {
-  id: string; // e.g. "iron-hcl"
+  id: string;
   metal: MetalItem;
   reagent: ReagentId;
 }
@@ -89,7 +89,7 @@ export function buildDeck(
       return shuffleList(allCombos, rng).slice(0, 7);
     }
 
-    // Standard mixed round: 13 cards covering all 13 metals with balanced reagents
+    // Standard mixed round: 14 cards covering all 14 metals across all 4 reagents
     const shuffledReagents = shuffleList(REAGENT_ORDER, rng);
     const balancedCards = METALS.map((metal, idx) => {
       const reagent = shuffledReagents[idx % shuffledReagents.length];
@@ -124,7 +124,7 @@ export function buildDeck(
 
 export function createInitialState(
   reagentSelection: ReagentSelection = 'hcl',
-  mode: GameMode = 'all13',
+  mode: GameMode = 'all14',
   startImmediately = false,
   rng: () => number = Math.random
 ): GameState {
